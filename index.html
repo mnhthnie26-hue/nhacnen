@@ -5,189 +5,217 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trình Phát Nhạc Của Ngoại</title>
     <style>
+        /* Tông màu nền nhẹ nhàng, sang trọng */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
             color: #333;
             margin: 0;
-            padding: 20px;
-            font-size: 24px;
+            padding: 20px 10px;
+            font-size: 22px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Thẻ điều khiển nổi bật (Sticky Card) */
+        .player-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 15px;
+            z-index: 100;
+            border: 1px solid rgba(255,255,255,0.5);
         }
 
         h1 {
-            text-align: center;
-            color: #004080;
-            font-size: 36px;
-            margin-bottom: 30px;
-        }
-
-        .player-header {
-            background-color: #ffffff;
-            border: 3px solid #004080;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-            position: sticky;
-            top: 10px;
-            z-index: 100;
+            color: #4a148c;
+            font-size: 34px;
+            margin: 0 0 15px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
         .now-playing {
             font-weight: bold;
-            color: #d32f2f;
-            margin-bottom: 20px;
+            color: #e65100;
+            font-size: 26px;
+            margin-bottom: 25px;
             min-height: 35px;
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 12px;
+            display: inline-block;
+            border: 1px dashed #ffb74d;
         }
 
+        /* Nút Phát/Tạm dừng to, gradient */
         #play-pause-btn {
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, #43a047, #2e7d32);
             color: white;
             border: none;
-            padding: 20px 40px;
+            padding: 18px 45px;
             font-size: 28px;
             font-weight: bold;
-            border-radius: 10px;
+            border-radius: 50px;
             cursor: pointer;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            margin-bottom: 20px;
+            max-width: 350px;
+            box-shadow: 0 8px 20px rgba(67, 160, 71, 0.4);
+            transition: all 0.3s ease;
+            margin-bottom: 25px;
         }
 
         #play-pause-btn:active {
-            background-color: #45a049;
-            transform: translateY(2px);
+            transform: scale(0.95);
         }
 
-        /* Khu vực nút chức năng */
+        /* Nút phụ (Lặp lại, Ngẫu nhiên) */
         .extra-controls {
             display: flex;
             justify-content: center;
             gap: 15px;
+            margin-bottom: 25px;
             flex-wrap: wrap;
-            margin-bottom: 20px;
         }
 
         .control-btn {
-            padding: 12px 20px;
+            padding: 12px 25px;
             font-size: 20px;
-            border-radius: 8px;
-            border: 2px solid #ccc;
-            background-color: #f9f9f9;
+            border-radius: 50px;
+            border: 2px solid #e0e0e0;
+            background-color: #fff;
+            color: #555;
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .control-btn.active-mode {
-            background-color: #fff9c4; 
-            border-color: #fbc02d;
-            color: #d32f2f;
+            transition: all 0.3s;
             font-weight: bold;
         }
 
-        /* Khu vực thanh thời gian (Progress Bar) */
+        .control-btn.active-mode {
+            background-color: #ede7f6;
+            border-color: #673ab7;
+            color: #5e35b1;
+            box-shadow: 0 4px 10px rgba(103, 58, 183, 0.2);
+        }
+
+        /* Thanh tua nhạc tinh tế */
         .progress-area {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 15px;
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
+            background: #f5f5f5;
+            padding: 15px 20px;
+            border-radius: 50px;
         }
 
         .time-text {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            color: #555;
-            min-width: 65px;
+            color: #666;
+            min-width: 60px;
         }
 
         #progress-bar {
             flex-grow: 1;
-            height: 12px; /* Thanh tua to dễ bấm */
+            height: 10px;
+            border-radius: 5px;
             cursor: pointer;
-            accent-color: #1976d2; /* Màu xanh nước biển cho thanh chạy */
+            accent-color: #d81b60; /* Màu hồng đậm cho dễ nhìn */
         }
 
-        /* Danh sách bài hát */
+        /* Danh sách bài hát kiểu thẻ (Card list) */
         .playlist {
             list-style-type: none;
             padding: 0;
-            max-width: 800px;
-            margin: 0 auto;
+            margin: 0;
         }
 
         .song-item {
-            background-color: #e3f2fd;
-            border: 2px solid #1976d2;
-            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 16px;
             margin-bottom: 15px;
-            padding: 25px 20px;
+            padding: 20px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-left: 8px solid #90caf9;
             display: flex;
             flex-direction: column;
         }
 
         .song-item:hover {
-            background-color: #bbdefb;
+            transform: translateY(-3px);
+            background-color: #fff;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
 
         .song-item.active {
-            background-color: #fff9c4;
-            border-color: #fbc02d;
-            border-width: 3px;
+            background-color: #fff;
+            border-left-color: #ff9800;
+            border-right: 2px solid #ff9800;
+            border-top: 2px solid #ff9800;
+            border-bottom: 2px solid #ff9800;
+            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.2);
         }
 
         .song-number {
-            font-weight: bold;
-            color: #1565c0;
-            margin-bottom: 5px;
-            font-size: 26px;
+            font-weight: 900;
+            color: #1976d2;
+            margin-bottom: 8px;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .song-title {
             font-weight: bold;
             font-size: 28px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            color: #222;
         }
 
         .song-artist {
-            font-size: 22px;
-            color: #555;
+            font-size: 20px;
+            color: #666;
             font-style: italic;
         }
     </style>
 </head>
 <body>
 
-    <h1>🎵 Nhạc Làm Nền 🎵</h1>
+    <div class="container">
+        <div class="player-card">
+            <h1>🎵 Giai Điệu Vượt Thời Gian 🎵</h1>
+            
+            <div class="now-playing" id="now-playing-text">Vui lòng chọn một bài hát</div>
+            
+            <button id="play-pause-btn" onclick="togglePlayPause()">▶ BẤM ĐỂ PHÁT</button>
+            
+            <div class="extra-controls">
+                <button id="repeat-btn" class="control-btn" onclick="toggleRepeat()">🔁 Lặp Lại: TẮT</button>
+                <button id="shuffle-btn" class="control-btn" onclick="toggleShuffle()">🔀 Ngẫu Nhiên: TẮT</button>
+            </div>
 
-    <div class="player-header">
-        <div class="now-playing" id="now-playing-text">Đang phát: Chưa chọn bài</div>
-        
-        <button id="play-pause-btn" onclick="togglePlayPause()">BẤM ĐỂ PHÁT</button>
-        
-        <div class="extra-controls">
-            <button id="repeat-btn" class="control-btn" onclick="toggleRepeat()">🔁 Tắt Lặp Lại</button>
-            <button id="shuffle-btn" class="control-btn" onclick="toggleShuffle()">🔀 Tắt Ngẫu Nhiên</button>
+            <div class="progress-area">
+                <span class="time-text" id="current-time">00:00</span>
+                <input type="range" id="progress-bar" value="0" min="0" step="1">
+                <span class="time-text" id="total-time">00:00</span>
+            </div>
+
+            <audio id="main-audio" style="display: none;"></audio>
         </div>
 
-        <div class="progress-area">
-            <span class="time-text" id="current-time">00:00</span>
-            <input type="range" id="progress-bar" value="0" min="0" step="1">
-            <span class="time-text" id="total-time">00:00</span>
-        </div>
-
-        <audio id="main-audio" style="display: none;"></audio>
+        <ul class="playlist" id="playlist-container">
+            </ul>
     </div>
-
-    <ul class="playlist" id="playlist-container">
-        </ul>
 
     <script>
         const songs = [
@@ -211,7 +239,6 @@
         const repeatBtn = document.getElementById('repeat-btn');
         const shuffleBtn = document.getElementById('shuffle-btn');
         
-        // Element cho thanh thời gian
         const progressBar = document.getElementById('progress-bar');
         const currentTimeEl = document.getElementById('current-time');
         const totalTimeEl = document.getElementById('total-time');
@@ -226,7 +253,7 @@
                 let artistHtml = song.artist ? `<div class="song-artist">${song.artist}</div>` : '';
 
                 li.innerHTML = `
-                    <div class="song-number">Bài ${song.id}:</div>
+                    <div class="song-number">Bài ${song.id}</div>
                     <div class="song-title">${song.title}</div>
                     ${artistHtml}
                 `;
@@ -248,8 +275,7 @@
             audio.play();
             
             nowPlayingText.innerText = "🔊 Đang phát: Bài " + song.id;
-            playPauseBtn.innerText = "⏸ TẠM DỪNG";
-            playPauseBtn.style.backgroundColor = "#f44336"; 
+            updatePlayButtonUI(true);
         }
 
         function togglePlayPause() {
@@ -260,12 +286,22 @@
 
             if (audio.paused) {
                 audio.play();
-                playPauseBtn.innerText = "⏸ TẠM DỪNG";
-                playPauseBtn.style.backgroundColor = "#f44336";
+                updatePlayButtonUI(true);
             } else {
                 audio.pause();
+                updatePlayButtonUI(false);
+            }
+        }
+
+        function updatePlayButtonUI(isPlaying) {
+            if (isPlaying) {
+                playPauseBtn.innerText = "⏸ TẠM DỪNG";
+                playPauseBtn.style.background = "linear-gradient(135deg, #e53935, #c62828)";
+                playPauseBtn.style.boxShadow = "0 8px 20px rgba(229, 57, 53, 0.4)";
+            } else {
                 playPauseBtn.innerText = "▶ PHÁT TIẾP";
-                playPauseBtn.style.backgroundColor = "#4CAF50";
+                playPauseBtn.style.background = "linear-gradient(135deg, #43a047, #2e7d32)";
+                playPauseBtn.style.boxShadow = "0 8px 20px rgba(67, 160, 71, 0.4)";
             }
         }
 
@@ -275,10 +311,10 @@
             
             if (isRepeat) {
                 repeatBtn.classList.add('active-mode');
-                repeatBtn.innerText = "🔁 Đang Lặp Lại 1 Bài";
+                repeatBtn.innerText = "🔁 Lặp Lại: BẬT";
             } else {
                 repeatBtn.classList.remove('active-mode');
-                repeatBtn.innerText = "🔁 Tắt Lặp Lại";
+                repeatBtn.innerText = "🔁 Lặp Lại: TẮT";
             }
         }
 
@@ -286,10 +322,10 @@
             isShuffle = !isShuffle;
             if (isShuffle) {
                 shuffleBtn.classList.add('active-mode');
-                shuffleBtn.innerText = "🔀 Đang Bật Ngẫu Nhiên";
+                shuffleBtn.innerText = "🔀 Ngẫu Nhiên: BẬT";
             } else {
                 shuffleBtn.classList.remove('active-mode');
-                shuffleBtn.innerText = "🔀 Tắt Ngẫu Nhiên";
+                shuffleBtn.innerText = "🔀 Ngẫu Nhiên: TẮT";
             }
         }
 
@@ -297,27 +333,18 @@
             let nextIndex;
             if (isShuffle) {
                 if (songs.length > 1) {
-                    do {
-                        nextIndex = Math.floor(Math.random() * songs.length);
-                    } while (nextIndex === currentSongIndex);
-                } else {
-                    nextIndex = 0;
-                }
+                    do { nextIndex = Math.floor(Math.random() * songs.length); } 
+                    while (nextIndex === currentSongIndex);
+                } else { nextIndex = 0; }
             } else {
                 nextIndex = currentSongIndex + 1;
-                if (nextIndex >= songs.length) {
-                    nextIndex = 0;
-                }
+                if (nextIndex >= songs.length) nextIndex = 0;
             }
             playSong(nextIndex);
         }
 
-        // ==========================================
-        // TÍNH NĂNG XỬ LÝ THANH THỜI GIAN NHẠC
-        // ==========================================
-
-        // Hàm chuyển đổi số giây thành định dạng Phút:Giây (VD: 03:15)
         function formatTime(seconds) {
+            if (isNaN(seconds)) return "00:00";
             let min = Math.floor(seconds / 60);
             let sec = Math.floor(seconds % 60);
             if (min < 10) min = "0" + min;
@@ -325,27 +352,22 @@
             return `${min}:${sec}`;
         }
 
-        // Khi bài hát tải xong dữ liệu, lấy tổng thời gian gán vào thanh trượt
         audio.addEventListener('loadedmetadata', () => {
             progressBar.max = audio.duration;
             totalTimeEl.innerText = formatTime(audio.duration);
         });
 
-        // Khi bài hát đang phát, cập nhật thanh trượt chạy theo
         audio.addEventListener('timeupdate', () => {
             progressBar.value = audio.currentTime;
             currentTimeEl.innerText = formatTime(audio.currentTime);
         });
 
-        // Khi người dùng bấm tua nhạc trên thanh trượt
         progressBar.addEventListener('input', () => {
             audio.currentTime = progressBar.value;
         });
 
-        // Khi hết bài hát, tự chuyển bài mới
         audio.addEventListener('ended', playNextSong);
 
-        // Khởi tạo giao diện
         window.onload = renderPlaylist;
     </script>
 </body>
