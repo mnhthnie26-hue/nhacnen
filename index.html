@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trình Phát Nhạc  </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            font-size: 24px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #004080;
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        .player-header {
+            background-color: #ffffff;
+            border: 3px solid #004080;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+
+        .now-playing {
+            font-weight: bold;
+            color: #d32f2f;
+            margin-bottom: 20px;
+            min-height: 35px;
+        }
+
+        #play-pause-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 28px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+        }
+
+        #play-pause-btn:active {
+            background-color: #45a049;
+            transform: translateY(2px);
+        }
+
+        /* Khu vực 2 nút tính năng mới */
+        .extra-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 12px 20px;
+            font-size: 20px;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            background-color: #f9f9f9;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Màu sắc khi nút được BẬT */
+        .control-btn.active-mode {
+            background-color: #fff9c4; 
+            border-color: #fbc02d;
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .playlist {
+            list-style-type: none;
+            padding: 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .song-item {
+            background-color: #e3f2fd;
+            border: 2px solid #1976d2;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            padding: 25px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .song-item:hover {
+            background-color: #bbdefb;
+        }
+
+        .song-item.active {
+            background-color: #fff9c4;
+            border-color: #fbc02d;
+            border-width: 3px;
+        }
+
+        .song-number {
+            font-weight: bold;
+            color: #1565c0;
+            margin-bottom: 5px;
+            font-size: 26px;
+        }
+
+        .song-title {
+            font-weight: bold;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .song-artist {
+            font-size: 22px;
+            color: #555;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎵 Nhạc Làm Nền 🎵</h1>
+
+    <div class="player-header">
+        <div class="now-playing" id="now-playing-text">Đang phát: Chưa chọn bài</div>
+        
+        <button id="play-pause-btn" onclick="togglePlayPause()">BẤM ĐỂ PHÁT</button>
+        
+        <div class="extra-controls">
+            <button id="repeat-btn" class="control-btn" onclick="toggleRepeat()">🔁 Tắt Lặp Lại</button>
+            <button id="shuffle-btn" class="control-btn" onclick="toggleShuffle()">🔀 Tắt Ngẫu Nhiên</button>
+        </div>
+
+        <audio id="main-audio" style="display: none;" onended="playNextSong()"></audio>
+    </div>
+
+    <ul class="playlist" id="playlist-container">
+        </ul>
+
+    <script>
+        // Bản dùng mảng tĩnh cho GitHub Pages
+        const songs = [
+            { id: 1, title: 'Hành khúc truyền thống CAND - "Chúng ta là chiến sĩ CA"', artist: '(Trọng Bằng) - Hợp xướng Đoàn ca múa nhạc CAND', src: 'bai1.mp3' },
+            { id: 2, title: 'Hành khúc Chiến sĩ An Ninh', artist: '(Kar Lam) - Hợp Ca Nam nữ', src: 'bai2.mp3' },
+            { id: 3, title: '"Người Công An Thân yêu"', artist: '(Văn Cao) - NSƯT Vũ Thắng Lợi & Tốp Ca', src: 'bai3.mp3' },
+            { id: 4, title: 'Liên khúc "Đại Học ANND Tự hào tiến bước"', artist: '', src: 'bai4.mp3' },
+            { id: 5, title: '"Bài Ca CAND VN"', artist: '(Phan Quốc Anh) - Nguyễn Hoàng Phương', src: 'bai5.mp3' },
+            { id: 6, title: '"Chúng tôi là người chiến sĩ CA VN"', artist: '(Trần Gia Cường) - Tuấn Anh, Hoàng Anh', src: 'bai6.mp3' },
+            { id: 7, title: '"Bài Ca chiến sĩ CA"', artist: '(Đỗ Hồng Quân) - Đức Tùng, Mai Chi', src: 'bai7.mp3' }
+        ];
+
+        let currentSongIndex = -1;
+        let isRepeat = false;
+        let isShuffle = false;
+
+        const audio = document.getElementById('main-audio');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const nowPlayingText = document.getElementById('now-playing-text');
+        const playlistContainer = document.getElementById('playlist-container');
+        const repeatBtn = document.getElementById('repeat-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+
+        function renderPlaylist() {
+            songs.forEach((song, index) => {
+                const li = document.createElement('li');
+                li.className = 'song-item';
+                li.id = 'song-item-' + index;
+                li.onclick = () => playSong(index);
+
+                let artistHtml = song.artist ? `<div class="song-artist">${song.artist}</div>` : '';
+
+                li.innerHTML = `
+                    <div class="song-number">Bài ${song.id}:</div>
+                    <div class="song-title">${song.title}</div>
+                    ${artistHtml}
+                `;
+                playlistContainer.appendChild(li);
+            });
+        }
+
+        function playSong(index) {
+            if (currentSongIndex !== -1) {
+                document.getElementById('song-item-' + currentSongIndex).classList.remove('active');
+            }
+
+            currentSongIndex = index;
+            const song = songs[index];
+            
+            document.getElementById('song-item-' + currentSongIndex).classList.add('active');
+            
+            audio.src = song.src;
+            audio.play();
+            
+            nowPlayingText.innerText = "🔊 Đang phát: Bài " + song.id;
+            playPauseBtn.innerText = "⏸ TẠM DỪNG";
+            playPauseBtn.style.backgroundColor = "#f44336"; 
+        }
+
+        function togglePlayPause() {
+            if (currentSongIndex === -1) {
+                playSong(0);
+                return;
+            }
+
+            if (audio.paused) {
+                audio.play();
+                playPauseBtn.innerText = "⏸ TẠM DỪNG";
+                playPauseBtn.style.backgroundColor = "#f44336";
+            } else {
+                audio.pause();
+                playPauseBtn.innerText = "▶ PHÁT TIẾP";
+                playPauseBtn.style.backgroundColor = "#4CAF50";
+            }
+        }
+
+        // Chức năng Lặp lại 1 bài
+        function toggleRepeat() {
+            isRepeat = !isRepeat;
+            audio.loop = isRepeat; // Lệnh HTML5 tự động lặp lại audio
+            
+            if (isRepeat) {
+                repeatBtn.classList.add('active-mode');
+                repeatBtn.innerText = "🔁 Đang Lặp Lại 1 Bài";
+            } else {
+                repeatBtn.classList.remove('active-mode');
+                repeatBtn.innerText = "🔁 Tắt Lặp Lại";
+            }
+        }
+
+        // Chức năng Phát Ngẫu nhiên
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            
+            if (isShuffle) {
+                shuffleBtn.classList.add('active-mode');
+                shuffleBtn.innerText = "🔀 Đang Bật Ngẫu Nhiên";
+            } else {
+                shuffleBtn.classList.remove('active-mode');
+                shuffleBtn.innerText = "🔀 Tắt Ngẫu Nhiên";
+            }
+        }
+
+        // Xử lý khi bài hát kết thúc
+        function playNextSong() {
+            // Nếu có bật lặp lại thì trình duyệt tự lo (audio.loop = true), hàm này không chạy.
+            
+            let nextIndex;
+            if (isShuffle) {
+                // Thuật toán chọn bài ngẫu nhiên (tránh lặp lại bài vừa nghe)
+                if (songs.length > 1) {
+                    do {
+                        nextIndex = Math.floor(Math.random() * songs.length);
+                    } while (nextIndex === currentSongIndex);
+                } else {
+                    nextIndex = 0;
+                }
+            } else {
+                // Hát theo thứ tự
+                nextIndex = currentSongIndex + 1;
+                if (nextIndex >= songs.length) {
+                    nextIndex = 0; // Quay về bài 1
+                }
+            }
+            
+            playSong(nextIndex);
+        }
+
+        window.onload = renderPlaylist;
+    </script>
+</body>
+</html>
